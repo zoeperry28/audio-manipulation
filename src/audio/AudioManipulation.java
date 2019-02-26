@@ -106,8 +106,6 @@ public class AudioManipulation {
 	    // therefore we linearly scale data[i] values to lie within this range .. 
 	    // .. so that each data[i] has a 16 digit "HB.LB binary representation" 
 	    if (max > 256*128 - 1) {
-		System.out.println("Sound values are linearly scaled by " + (256.0*128.0-1)/max + 
-             " because maximum amplitude is larger than upper boundary of allowed value range."); 
 		for (int i=0; i<data.length; ++i) {
 		    data[i] = (int) (data[i]*(256.0*128.0-1)/max);
 		}
@@ -432,32 +430,56 @@ public class AudioManipulation {
 		     int N = 0 ; // explained in CW3 worksheet - bytes per segment Ai (or Bi)
 		     int L = ich0.length;
 		     int outL = och0.length;
-          
+		     int R = (outL % (2 * N)) / 2; //not usually in code - change?
 		     // index i marks out start positions of double segments Ai O, (or Bi O) each of length 2*N
-		     int i = 0;
 		     // index j counts individual bytes in segments Ai, each of length N, going from 0 to N-1
-		     int j = 0;
 		     // index k counts individual bytes in the final segment E (or F), of length R = outL % N, going from 0 to R-1
-		     int k = 0;
 		     // MAIN CODE HERE MAKING USE OF i, j, k, N, R 
 	//	     ?? ..... 
 
+		     for (int i = 0; i < (double) outL / (double) (2 * N) - 1; i++){
+					//System.out.println("new j loop, start: " + (i * 2 * N) + ", end: " + ((i * 2 * N) + N + N - 1));
+					for (int j = 0; j < N; j++){
+						// First half (A0 in ch0, O in ch1)
+						ich0[(i * 2 * N) + j] = ich0[(i * N) + j];
+						ich1[(i * 2 * N) + j] = 0x00;
+						// Second half (B0 in ch1, O in ch0)
+						ich0[(i * 2 * N) + j + N] = 0x00;
+						ich1[(i * 2 * N) + j + N] = ich1[(i * N) + j];
+					}
+				}
+
+		     int lastSeg = (int) Math.floor((double) outL / (double) (2 * N));
+		     
+		     for (int k = 0; k < R; k++)
+				{
+					ich0[(lastSeg * 2 * N) + k] = ich0[(lastSeg * N) + k];
+					ich1[(lastSeg * 2 * N) + k] = 0x00;
+
+					ich0[(lastSeg * 2 * N) + k + R] = 0x00;
+					ich1[(lastSeg * 2 * N) + k + R] = ich1[(lastSeg * N) + k];
+				}
 		     // END OF compute the output channels from the input channels 
 		     // ----------------------------------------------------------------------------
 
 		     // finally ... join och0 and och1 into b
-	         for (int l=0; l < b.length; l += 4) {
-		      	b[l]   = och0[l/2];
 			// etc etc 
-		       }
+		       
+	         
+			int[] data = new int[och0.length * 2];
+			for (int i = 0; i < data.length; i += 2){
+				data[i] = ich0[i / 2];
+				data[i + 1] = ich1[i / 2];
+			}
+//	         Sound values are linearly scaled by " + (256.0 * 128.0 - 1) / max because maximum amplitude "
+//	         is larger than upper boundary of allowed value range.
 
-
-	    // fill up b using och0 and och1 
-	    for (int m=0; m < b.length; m += 4) {
-	    	b[m] = och0[m/2];
-			  // ??
-	    	      }
-
+			for (int i = 0; i < data.length; ++i)
+			{
+				b[2 * i] = (byte) ((data[i] >> 8) & 0xff);
+				b[2 * i + 1] = (byte) (data[i] & 0xff);
+			}
+			
 	} catch(Exception e){
 	    System.out.println("Something went wrong");
 	    e.printStackTrace();
