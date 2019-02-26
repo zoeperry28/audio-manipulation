@@ -408,15 +408,21 @@ public class AudioManipulation {
 		     // ??
 			 ich0 = new byte[a.length/numChannels];
 			 ich1 = new byte[a.length/numChannels];
+			 System.out.println(Arrays.toString(ich0));
+			 System.out.println(Arrays.toString(ich1));
 		     // fill up ich0 and ich1 by splitting a
 		  //   ?? 
 			 for(int i =0; i>ich0.length; i++) {
 				 for(int j = 1; j>ich1.length; j++) {
 					 ich0[i] = a[i * 2];
+					 
 					 ich1[j] = a[j * 2];
+					System.out.println(ich0[i] +  "," +  ich1[j]);
 					 
 				 }
-			 }
+			 } 
+			 System.out.println(Arrays.toString(ich0));
+			 System.out.println(Arrays.toString(ich1));
 			 
 
 //			    Read the input ais into a byte array a, and create a byte array b for the effect output.
@@ -431,7 +437,7 @@ public class AudioManipulation {
 		   
 		     int N = 0 ; // explained in CW3 worksheet - bytes per segment Ai (or Bi)
 		     int L = ich0.length;
-		     int outL = och0.length;
+		     int outL = ich0.length;
           
 		     // index i marks out start positions of double segments Ai O, (or Bi O) each of length 2*N
 		     int i = 0;
@@ -447,27 +453,27 @@ public class AudioManipulation {
 
 		     // finally ... join och0 and och1 into b
 	         for (int l=0; l < b.length; l += 4) {
-		      	b[l]   = och0[l/2];
-			// etc etc 
+	        	 b[l]   = ich0[l];
+			     b[l+1] = ich1[l];
 		       }
 
 
 	    // fill up b using och0 and och1 
-	    for (int m=0; m < b.length; m += 4) {
-	    	b[m] = och0[m/2];
+	    for (int m=1; m < b.length; m += 4) {
+	    	b[m] = ich0[m/2];
 			  // ??
 	    	      }
 
 	} catch(Exception e){
 	    System.out.println("Something went wrong");
 	    e.printStackTrace();
-	}
-	return ais;
 	
-	// return b 
-//	return new AudioInputStream(new ByteArrayInputStream(b),
-//				    ais.getFormat(), b.length/ais.getFormat().getFrameSize());
+	
+
 
     } // end altChannels
+	return new AudioInputStream(new ByteArrayInputStream(b),
+		    ais.getFormat(), b.length/ais.getFormat().getFrameSize());
 
 } // AudioManipulation
+}
